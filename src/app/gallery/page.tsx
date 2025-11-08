@@ -34,7 +34,7 @@ export default function GalleryPage() {
   }, []);
 
   return (
-    <section className="bg-[#103c3b]">
+    <section className="bg-[#656566]">
       <div className="min-h-screen py-28 w-[1177px] mx-auto">
         <div className="container mx-auto text-center">
           <h2

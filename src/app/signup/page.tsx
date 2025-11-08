@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@mui/material';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function SignupPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -54,7 +57,7 @@ export default function SignupPage() {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-white bg-opacity-90 backdrop-blur-md p-6 rounded-md shadow-md w-80"
+        className="bg-[#d4d4d6] bg-opacity-90 backdrop-blur-md p-6 rounded-md shadow-md w-80"
       >
         <h1 className="text-xl font-semibold mb-4 text-center">Signup</h1>
 
@@ -100,10 +103,27 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="bg-[#103c3b] hover:bg-[#0d302f] transition text-white w-full py-2 rounded-md"
+          className="bg-[#103c3b] hover:bg-[#0d302f] transition font-bold text-white w-full py-2 rounded-md"
         >
           Signup
         </button>
+
+        <div className="text-center my-2 text-gray-500">or</div>
+
+        <Button
+          variant="outlined"
+          onClick={() => signIn('google', { callbackUrl: '/' })}
+          className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-[#103c3b]transition"
+        >
+          <FcGoogle size={24} /> Continue with Google
+        </Button>
+
+        <p className="text-center mt-6 text-gray-700">
+          Already have an account?{' '}
+          <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
+            Sign in
+          </Link>
+        </p>
       </form>
     </div>
   );

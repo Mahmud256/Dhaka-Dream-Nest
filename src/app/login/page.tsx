@@ -2,6 +2,7 @@
 
 import { Button } from '@mui/material';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
@@ -60,20 +61,28 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="bg-[#103c3b] hover:bg-[#0d302f] transition text-white w-full py-2 rounded-md"
+          className="bg-[#103c3b] hover:bg-[#0d302f] transition text-white w-full py-2 rounded-md cursor-pointer font-bold"
         >
           Login
         </button>
 
         <div className="text-center my-2 text-gray-500">or</div>
 
-        <Button
-          variant="outlined"
+        <button
+          type='button'
           onClick={() => signIn('google', { callbackUrl: '/' })}
-          className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-[#103c3b]transition"
+          className="w-full font-bold flex items-center justify-center cursor-pointer gap-2 border border-[#77a5d4] py-2 rounded-lg hover:bg-[#86a5fa10] hover:border-[#1976d2] hover:bg-opacity-[0.04] transition"
         >
-          <FcGoogle size={24} /> Continue with Google
-        </Button>
+          <FcGoogle size={25} /> Continue with Google
+        </button>
+
+
+        <p className="text-center mt-6 text-gray-700">
+          Don’t have an account?{' '}
+          <Link href="/signup" className="text-indigo-600 font-semibold hover:underline">
+            Sign up
+          </Link>
+        </p>
       </form>
     </div>
   );
