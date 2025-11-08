@@ -1,6 +1,7 @@
 import Banner from "@/components/Banner";
 import BuildingDetails from "@/components/BuildingDetails";
 import HomeOverview from "@/components/HomeOverview";
+import NearbyPlaces from "@/components/NearbyPlaces";
 import VideoSection from "@/components/VideoSection";
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
       </div>
       <HomeOverview />
       <BuildingDetails />
+      <NearbyPlaces />
       <VideoSection />
     </div>
   );

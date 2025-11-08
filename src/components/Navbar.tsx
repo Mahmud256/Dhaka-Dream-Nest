@@ -3,27 +3,28 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { User, Menu, X } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react'; // ✅ for authentication
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { data: session } = useSession(); // ✅ get session data
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 100);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <header
-      className={`absolute left-0 w-full z-[1001] transition-all duration-500 ${isScrolled
-          ? 'bg-[#eaf8f8] backdrop-blur-md shadow-md top-0 fixed'
-          : 'bg-transparent top-0'
-        }`}
+      className={`fixed top-0 left-0 w-full z-[1001] transition-all duration-500 ${
+        isScrolled ? 'bg-[#eaf8f8] shadow-md' : 'bg-transparent'
+      }`}
     >
-      <div className="w-[1177px] mx-auto my-4 bg-[#eaf8f8] rounded-xl px-6 py-3 flex justify-between items-center transition-all duration-300">
+      <div className="max-w-[1177px] mx-auto my-4 bg-[#eaf8f8] rounded-xl px-6 py-3 flex justify-between items-center transition-all duration-300">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <Image
@@ -35,47 +36,85 @@ const Navbar: React.FC = () => {
           />
         </Link>
 
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-6  font-medium">
-          <div className="relative group">
-            <Link href="/" className="hover:text-gray-300">Home</Link>
-          </div>
-          <Link href="apartment" className="hover:text-gray-300">Apartment</Link>
-          <Link href="gallery" className="hover:text-gray-300">Gallery</Link>
-          <Link href="floorplan" className="hover:text-gray-300">Floorplan</Link>
-          <Link href="contact" className="hover:text-gray-300">Contact</Link>
+        {/* Navigation (Desktop) */}
+        <nav className="hidden md:flex items-center space-x-6 font-medium">
+          <Link href="/" className="hover:text-[#4f46e5]">Home</Link>
+          <Link href="/apartment" className="hover:text-[#4f46e5]">Apartment</Link>
+          <Link href="/gallery" className="hover:text-[#4f46e5]">Gallery</Link>
+          <Link href="/floorplan" className="hover:text-[#4f46e5]">Floorplan</Link>
+          <Link href="/contact" className="hover:text-[#4f46e5]">Contact</Link>
         </nav>
 
-        {/* Right Side */}
-        <div className="flex items-center space-x-4">
-          <Link
-            href="contact"
-            className="bg-white text-[#103c3b] font-semibold px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+        {/* Right Side - Profile */}
+        <div className="flex items-center space-x-4 relative">
+          {/* Profile Icon */}
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="p-2 rounded-full bg-white hover:bg-gray-200 transition"
           >
-            Schedule a Visit
-          </Link>
+            <User className="w-5 h-5 text-[#103c3b]" />
+          </button>
 
-          {/* Mobile menu */}
+          {/* Profile Dropdown */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-10 bg-white shadow-lg rounded-md py-2 px-4 w-40 z-50">
+              {session ? (
+                <>
+                  <p className="text-sm text-gray-700 mb-2">
+                    Hello, {session.user?.name?.split(' ')[0]}
+                  </p>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-left w-full text-red-500 hover:text-red-600 text-sm"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block text-sm text-gray-700 hover:text-[#4f46e5]"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="block text-sm text-gray-700 hover:text-[#4f46e5]"
+                  >
+                    Signup
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Mobile menu toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden flex flex-col justify-between w-6 h-5"
+            className="md:hidden p-2 bg-[#103c3b] rounded-lg text-white"
           >
-            <span className="w-full h-[2px] bg-white"></span>
-            <span className="w-full h-[2px] bg-white"></span>
-            <span className="w-full h-[2px] bg-white"></span>
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-[#0a2625] shadow-lg py-3">
-          <ul className="flex flex-col space-y-2 px-4 ">
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="apartment">Apartment</Link></li>
-            <li><Link href="gallery">Gallery</Link></li>
-            <li><Link href="floorplan">Floorplan</Link></li>
-            <li><Link href="contact">Contact</Link></li>
+        <div className="md:hidden bg-[#103c3b] text-white shadow-lg py-3">
+          <ul className="flex flex-col space-y-3 px-6">
+            <li><Link href="/" onClick={() => setIsMenuOpen(false)}>Home</Link></li>
+            <li><Link href="/apartment" onClick={() => setIsMenuOpen(false)}>Apartment</Link></li>
+            <li><Link href="/gallery" onClick={() => setIsMenuOpen(false)}>Gallery</Link></li>
+            <li><Link href="/floorplan" onClick={() => setIsMenuOpen(false)}>Floorplan</Link></li>
+            <li><Link href="/contact" onClick={() => setIsMenuOpen(false)}>Contact</Link></li>
+            {!session && (
+              <li className="border-t border-gray-700 pt-2">
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                  Login
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       )}
