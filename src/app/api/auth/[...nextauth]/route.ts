@@ -7,12 +7,15 @@ import bcrypt from "bcryptjs";
 
 const handler = NextAuth({
   providers: [
+    // ✅ Google OAuth provider
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+
+    // ✅ Credentials (email/password) login
     CredentialsProvider({
-      name: "credentials",
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
@@ -20,42 +23,72 @@ const handler = NextAuth({
       async authorize(credentials: any) {
         await connectDB();
         const user = await User.findOne({ email: credentials.email });
+
         if (!user) throw new Error("No user found");
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) throw new Error("Invalid credentials");
 
-        return { id: user._id, name: user.name, email: user.email };
+        // ✅ Return user including role
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role || "user",
+        };
       },
     }),
   ],
+
+  // ✅ Callbacks handle token and session info
   callbacks: {
-    async signIn({ user, account, profile }) {
+    // Runs during sign in (Google or credentials)
+    async signIn({ user, account }) {
       await connectDB();
 
-      // Only create a new user for Google logins
+      // For Google login: create new user if doesn't exist
       if (account?.provider === "google") {
         const existingUser = await User.findOne({ email: user.email });
+
         if (!existingUser) {
-          // Create user in your custom MongoDB collection
-          await User.create({
+          const newUser = await User.create({
             name: user.name,
             email: user.email,
             image: user.image,
-            password: "", // No password for OAuth
+            password: "",
+            role: "user", // Default role
           });
+          user.role = newUser.role;
+        } else {
+          user.role = existingUser.role; // Ensure role consistency
         }
       }
 
       return true;
     },
+
+    // Add role to JWT token
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as any).role || "user";
+      }
+      return token;
+    },
+
+    // Add role and id to session
     async session({ session, token }) {
-      // Add the user id to session
-      session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.sub as string;
+        session.user.role = token.role as string;
+      }
       return session;
     },
   },
+
+  // ✅ Use JWT strategy for session
   session: { strategy: "jwt" },
+
+  // ✅ Security secret
   secret: process.env.NEXTAUTH_SECRET,
 });
 

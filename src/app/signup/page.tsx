@@ -103,7 +103,7 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="bg-[#103c3b] hover:bg-[#0d302f] transition font-bold text-white w-full py-2 rounded-md"
+          className="bg-[#103c3b] cursor-pointer hover:bg-[#0d302f] transition font-bold text-white w-full py-2 rounded-md"
         >
           Signup
         </button>

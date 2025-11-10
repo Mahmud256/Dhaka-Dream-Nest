@@ -18,10 +18,16 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // ✅ Determine profile dashboard route based on role
+  const profileLink = session?.user?.role
+    ? `/dashboard/${session.user.role}`
+    : '/login';
+
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-[1001] transition-all duration-500 ${isScrolled ? 'bg-[#eaf8f8] shadow-md' : 'bg-transparent'
-        }`}
+      className={`fixed top-0 left-0 w-full z-[1001] transition-all duration-500 ${
+        isScrolled ? 'bg-[#eaf8f8] shadow-md' : 'bg-transparent'
+      }`}
     >
       <div className="max-w-[1177px] mx-auto my-4 bg-[#eaf8f8] rounded-xl px-6 py-3 flex justify-between items-center transition-all duration-300">
         {/* Logo */}
@@ -49,20 +55,26 @@ const Navbar: React.FC = () => {
           {/* Profile Icon */}
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="p-2 rounded-full bg-white hover:bg-gray-200 transition"
+            className="p-2 rounded-full cursor-pointer bg-white hover:bg-gray-200 transition"
           >
             <User className="w-5 h-5 text-[#103c3b]" />
           </button>
 
           {/* Profile Dropdown */}
           {isDropdownOpen && (
-            <div className="absolute right-0 top-10 bg-white shadow-lg rounded-md py-2 px-4 w-40 z-50">
+            <div className="absolute right-0 top-10 bg-white shadow-lg rounded-md py-2 px-4 w-44 z-50">
               {session ? (
                 <>
                   <p className="font-bold text-gray-700 mb-2">
                     Hello, {session.user?.name?.split(' ')[0]}
                   </p>
-                  <p className="font-bold text-gray-700 mb-2">Profile</p>
+                  <Link
+                    href={profileLink} // ✅ dynamic role-based dashboard link
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block font-bold text-gray-700 mb-2 hover:text-[#4f46e5]"
+                  >
+                    Profile
+                  </Link>
                   <button
                     onClick={() => signOut()}
                     className="text-left w-full text-red-500 hover:text-green-500 font-bold cursor-pointer"
@@ -74,6 +86,7 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     href="/login"
+                    onClick={() => setIsDropdownOpen(false)}
                     className="block font-bold text-gray-700 hover:text-[#4f46e5]"
                   >
                     Login
