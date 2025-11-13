@@ -43,13 +43,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                     {/* Role-based navigation */}
                     {session?.user?.role === "admin" && (
-                        <Link
-                            href="/dashboard/admin"
-                            className={`flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f] ${pathname === "/dashboard/admin" ? "bg-[#14524f]" : ""}`}
-                        >
-                            <Users size={18} /> Admin Panel
-                        </Link>
+                        <>
+                            <Link
+                                href="/dashboard/admin"
+                                className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
+                            >
+                                <Users size={18} /> Admin Panel
+                            </Link>
+
+                            <Link
+                                href="/dashboard/admin/users"
+                                className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
+                            >
+                                👥 Manage Users
+                            </Link>
+                        </>
                     )}
+
 
                     {session?.user?.role === "member" && (
                         <Link
