@@ -19,17 +19,24 @@ interface ApartmentType {
 const ApartmentPage: React.FC = () => {
     const [apartments, setApartments] = useState<ApartmentType[]>([]);
 
-    // Initialize AOS
+    // Initialize AOS animation
     useEffect(() => {
         AOS.init({ duration: 1000 });
     }, []);
 
+    // Fetch Apartments
     useEffect(() => {
         axios
             .get("/api/apartments")
             .then((res) => setApartments(res.data))
             .catch(() => {
-                // Fallback mock data
+                /**
+                 * Fallback Mock Data (Only runs when API fails)
+                 * ------------------------------------------------
+                 * This data is temporary and used only if the backend
+                 * API is not responding or returns an error.
+                 * Remove this mock data after backend is fully ready.
+                 */
                 setApartments([
                     {
                         _id: "1",
@@ -67,10 +74,11 @@ const ApartmentPage: React.FC = () => {
             });
     }, []);
 
-    const handleAgreement = (room: ApartmentType) => {
+    // Handle Agreement Button
+    const handleAgreement = (apt: ApartmentType) => {
         Swal.fire({
             title: "Agreement Confirm",
-            text: `Do you want to make an agreement for Apartment ${room.aprtno}?`,
+            text: `Do you want to make an agreement for Apartment ${apt.aprtno}?`,
             icon: "question",
             showCancelButton: true,
             confirmButtonText: "Yes, Confirm",
@@ -78,7 +86,7 @@ const ApartmentPage: React.FC = () => {
             if (result.isConfirmed) {
                 Swal.fire({
                     icon: "success",
-                    title: `Agreement confirmed for Apartment ${room.aprtno}`,
+                    title: `Agreement confirmed for Apartment ${apt.aprtno}`,
                     showConfirmButton: false,
                     timer: 1500,
                 });
@@ -90,49 +98,49 @@ const ApartmentPage: React.FC = () => {
         <section className="bg-[#656566]">
             <Box className="min-h-screen py-[120px] w-[1177px] mx-auto">
                 <h2
-                    className="text-3xl font-bold text-[#eaf8f8] mb-10 flex items-center justify-center gap-2"
+                    className="text-3xl font-bold text-[#eaf8f8] mb-10 flex items-center justify-center"
                     data-aos="fade-up"
                 >
                     Available Apartments
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                    {apartments.map((room, index) => {
+                    {apartments.map((apt, index) => {
                         const isEven = index % 2 === 0;
 
                         return (
                             <Card
-                                key={room._id}
+                                key={apt._id}
                                 data-aos={isEven ? "flip-left" : "flip-right"}
                                 style={{ backgroundColor: "#f4f9f9" }}
                                 className="group overflow-hidden"
                             >
                                 <div className="flex flex-col">
-                                    {/* Image */}
+                                    {/* Apartment Image */}
                                     <CardMedia
                                         component="img"
-                                        image={room.aimage}
-                                        alt={room.aprtno}
+                                        image={apt.aimage}
+                                        alt={apt.aprtno}
                                         className="w-full h-60 object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-110"
                                     />
 
-                                    {/* Content */}
+                                    {/* Apartment Details */}
                                     <div className="p-6 flex flex-col gap-3 text-gray-800">
                                         <Typography variant="h6" className="font-semibold text-[#4f46e5]">
                                             Dhaka Dream Nest
                                         </Typography>
 
                                         <div className="grid grid-cols-2 gap-2 text-sm">
-                                            <Typography>Apartment No: {room.aprtno}</Typography>
-                                            <Typography>Floor No: {room.flrno}</Typography>
-                                            <Typography>Block: {room.block}</Typography>
-                                            <Typography>Rent: ${room.rent}</Typography>
+                                            <Typography>Apartment No: {apt.aprtno}</Typography>
+                                            <Typography>Floor No: {apt.flrno}</Typography>
+                                            <Typography>Block: {apt.block}</Typography>
+                                            <Typography>Rent: ${apt.rent}</Typography>
                                         </div>
 
                                         <Button
                                             variant="contained"
                                             color="primary"
-                                            onClick={() => handleAgreement(room)}
+                                            onClick={() => handleAgreement(apt)}
                                             className="mt-4"
                                         >
                                             Agreement
@@ -140,7 +148,6 @@ const ApartmentPage: React.FC = () => {
                                     </div>
                                 </div>
                             </Card>
-
                         );
                     })}
                 </div>

@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect } from "react";
-import { LogOut, LayoutDashboard, User, Users, Home } from "lucide-react";
+import { LogOut, LayoutDashboard, User, Users, Home, Building2 } from "lucide-react";
 import AuthProvider from "../providers/AuthProvider";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -56,6 +56,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
                             >
                                 👥 Manage Users
+                            </Link>
+                            <Link
+                                href="/dashboard/admin/apartments/add"
+                                className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
+                            >
+                                <Building2 size={18} />
+                                <span>Add Apartments</span>
+                            </Link>
+
+                            <Link
+                                href="/dashboard/admin/apartments"
+                                className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
+                            >
+                                <Building2 size={18} />
+                                <span>Manage Apartments</span>
                             </Link>
                         </>
                     )}
