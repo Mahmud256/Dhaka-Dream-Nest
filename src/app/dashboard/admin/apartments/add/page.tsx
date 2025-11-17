@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Swal from "sweetalert2";
-
-// MUI Components
 import {
   Card,
   CardContent,
@@ -13,6 +11,7 @@ import {
   Box,
   Stack,
   Input,
+  CircularProgress,
 } from "@mui/material";
 
 const imageApiKey = process.env.NEXT_PUBLIC_IMGBB_KEY;
@@ -25,6 +24,8 @@ export default function AddApartment() {
   const [rent, setRent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -33,7 +34,10 @@ export default function AddApartment() {
       return;
     }
 
+    setLoading(true);
+
     try {
+      // Upload image to imgbb
       const formData = new FormData();
       formData.append("image", imageFile);
 
@@ -43,11 +47,14 @@ export default function AddApartment() {
       });
 
       const imgData = await uploadRes.json();
+
       if (!imgData.success) {
+        setLoading(false);
         Swal.fire("Error", "Image upload failed!", "error");
         return;
       }
 
+      // Create apartment
       const newApartment = {
         aprtno,
         flrno,
@@ -65,6 +72,7 @@ export default function AddApartment() {
       if (res.ok) {
         Swal.fire("Success", "Apartment added successfully!", "success");
 
+        // Reset form
         setAprtno("");
         setFlrno("");
         setBlock("");
@@ -77,6 +85,8 @@ export default function AddApartment() {
       console.error(error);
       Swal.fire("Error", "Something went wrong!", "error");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -89,7 +99,6 @@ export default function AddApartment() {
 
           <form onSubmit={handleSubmit}>
             <Stack spacing={3} mt={2}>
-              
               <TextField
                 label="Apartment No"
                 value={aprtno}
@@ -140,13 +149,13 @@ export default function AddApartment() {
                 type="submit"
                 variant="contained"
                 size="large"
+                disabled={loading}
                 sx={{ py: 1.5, fontWeight: "bold", borderRadius: 2 }}
               >
-                Add Apartment
+                {loading ? <CircularProgress size={24} color="inherit" /> : "Add Apartment"}
               </Button>
             </Stack>
           </form>
-
         </CardContent>
       </Card>
     </Box>
