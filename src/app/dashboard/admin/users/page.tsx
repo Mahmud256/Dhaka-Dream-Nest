@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, RefreshCw, UserCog } from "lucide-react";
+import { Trash2, UserCog } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export default function AdminUsersPage() {
@@ -93,12 +93,6 @@ export default function AdminUsersPage() {
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <UserCog className="text-[#103c3b]" /> Manage Users
         </h1>
-        <button
-          onClick={fetchUsers}
-          className="flex items-center gap-2 px-3 py-2 bg-[#103c3b] text-white rounded-md hover:bg-[#14524f]"
-        >
-          <RefreshCw size={16} /> Refresh
-        </button>
       </div>
 
       {loading ? (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Apartment from "@/models/Apartment";
+import Agreement from "@/models/Agreement"; // <-- IMPORTANT
 
 // ---------- GET APARTMENT BY ID ----------
 export async function GET(
@@ -63,16 +64,26 @@ export async function PUT(
   }
 }
 
-// ---------- DELETE APARTMENT ----------
+// ----------- DELETE APARTMENT (WITH AGREEMENT CHECK) -----------
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-
     const { id } = await context.params;
 
+    // 🔥 1. Check if any agreement exists for this apartment
+    const agreementExists = await Agreement.findOne({ apartmentId: id });
+
+    if (agreementExists) {
+      return NextResponse.json(
+        { error: "Cannot delete. This apartment is already booked by a member." },
+        { status: 400 }
+      );
+    }
+
+    // 🔥 2. No agreement → delete apartment
     const deleted = await Apartment.findByIdAndDelete(id);
 
     if (!deleted) {

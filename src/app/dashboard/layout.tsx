@@ -72,6 +72,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <Building2 size={18} />
                                 <span>Manage Apartments</span>
                             </Link>
+
+                            <Link
+                                href="/dashboard/admin/agreement"
+                                className="flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f]"
+                            >
+                                <Building2 size={18} />
+                                <span>Manage Agreements</span>
+                            </Link>
                         </>
                     )}
 
