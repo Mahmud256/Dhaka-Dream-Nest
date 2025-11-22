@@ -156,8 +156,12 @@ export default function UpdateApartment() {
                                 <Input
                                     type="file"
                                     fullWidth
-                                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        const file = e.target.files?.[0] || null;
+                                        setImageFile(file);
+                                    }}
                                 />
+
                             </Box>
 
                             <Button

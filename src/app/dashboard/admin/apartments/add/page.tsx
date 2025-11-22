@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 import {
   Card,
@@ -140,7 +140,9 @@ export default function AddApartment() {
                 <Input
                   type="file"
                   fullWidth
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setImageFile(e.target.files?.[0] ?? null)
+                  }
                   required
                 />
               </Box>
