@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import Image from "next/image";
-import AOS from "aos";
 import "aos/dist/aos.css";
 
 const features = [
@@ -33,10 +32,12 @@ const features = [
 
 const HomeOverview = () => {
     useEffect(() => {
-        AOS.init({
-            duration: 1000 // animation duration (ms)
-            // once: true, // only animate once
-            // easing: "ease-in-out", // smooth animation
+        import("aos").then((module) => {
+            module.default.init({
+                duration: 1000 // animation duration (ms)
+                // once: true, // only animate once
+                // easing: "ease-in-out", // smooth animation
+            });
         });
     }, []);
 

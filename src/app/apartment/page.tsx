@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardMedia, Typography, Button, Box } from "@mui/material";
 import Swal from "sweetalert2";
 import axios from "axios";
-import AOS from "aos";
+import "aos/dist/aos.css";
 import { useSession } from "next-auth/react";
 
 interface ApartmentType {
@@ -24,7 +24,9 @@ const ApartmentPage: React.FC = () => {
 
   // Initialize AOS
   useEffect(() => {
-    AOS.init({ duration: 1000 });
+    import("aos").then((module) => {
+      module.default.init({ duration: 1000, once: true });
+    });
   }, []);
 
   // Fetch Apartments

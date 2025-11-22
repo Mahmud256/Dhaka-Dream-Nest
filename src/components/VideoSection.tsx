@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play, X } from 'lucide-react';
 // Use AOS for on-scroll fades; hover fade is handled with CSS overlay
-import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 const VideoSection = () => {
@@ -13,7 +12,9 @@ const VideoSection = () => {
 
   useEffect(() => {
     // Initialize AOS (fade on scroll)
-    AOS.init({ once: true, duration: 600 });
+    import("aos").then((module) => {
+      module.default.init({ once: true, duration: 600 });
+    });
   }, []);
 
   return (

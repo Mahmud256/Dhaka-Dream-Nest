@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { useEffect } from 'react';
 
@@ -39,7 +38,9 @@ const places: Place[] = [
 
 const NearbyPlaces: React.FC = () => {
   useEffect(() => {
-    AOS.init({ duration: 800, once: true });
+    import("aos").then((module) => {
+      module.default.init({ duration: 800, once: true });
+    });
   }, []);
 
   return (
