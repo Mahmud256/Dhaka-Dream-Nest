@@ -7,10 +7,22 @@ import { connectDB } from "@/lib/mongodb";
 import Apartment from "@/models/Apartment";
 import Payment from "@/models/Payment";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+let stripe: Stripe;
+
+function getStripe() {
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY missing");
+    }
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+}
 
 export async function POST(req: Request) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch {}
 
   const { apartmentId, userId } = await req.json();
 
@@ -24,6 +36,8 @@ export async function POST(req: Request) {
   }
 
   try {
+    const stripe = getStripe();
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
