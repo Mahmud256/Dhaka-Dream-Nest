@@ -1,127 +1,160 @@
+// src/app/dashboard/member/page.tsx
 "use client";
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import axios from "axios";
+
+interface ApartmentType {
+  _id: string;
+  aimage: string;
+  aprtno: string;
+  flrno: string;
+  block: string;
+  rent: number;
+}
 
 interface AgreementType {
   _id: string;
-  apartment: {
-    _id: string;
-    aprtno: string;
-    flrno: string;
-    block: string;
-    rent: number;
-    aimage: string;
-  };
-  status: string;
-  // Optional user info if your API provides it
-  user?: {
-    name: string;
-    email: string;
-  };
+  apartment: ApartmentType | string;
+  user?: { _id: string } | string;
+  status: "pending" | "completed" | "cancelled";
 }
 
 export default function MemberPage() {
   const { data: session } = useSession();
   const [agreements, setAgreements] = useState<AgreementType[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const fetchMemberAgreements = async () => {
+  // Fetch agreements for the logged-in user
+  const fetchAgreements = async () => {
+    if (!session?.user?.id) return;
+
     try {
-      const res = await fetch("/api/agreements");
-      const data: AgreementType[] = await res.json();
+      const res = await axios.get(`/api/agreements`);
+      // Only set agreements for current user (server returns all agreements)
+      const filtered: AgreementType[] = res.data.filter((a: any) => {
+        if (!a.user) return false;
+        const maybeId = typeof a.user === "string" ? a.user : a.user._id || a.user.id;
+        return maybeId === session.user.id;
+      });
 
-      // Filter agreements for current member if user info exists
-      const memberAgreements = data.filter(
-        (a) => a.user?.email === session?.user?.email
-      );
-
-      setAgreements(memberAgreements);
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to load agreements", "error");
-    } finally {
-      setLoading(false);
+      setAgreements(filtered);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to fetch bookings", "error");
     }
   };
 
+  // Handle Stripe redirect after payment
   useEffect(() => {
-    if (session?.user?.email) {
-      fetchMemberAgreements();
+    const query = new URLSearchParams(window.location.search);
+    const success = query.get("success");
+    const apartmentId = query.get("apartmentId");
+    const userId = query.get("userId");
+
+    if (success === "true" && apartmentId && userId) {
+      // Confirm payment and create agreement
+      axios
+        .post("/api/payments/confirm", { apartmentId, userId })
+        .then((res) => {
+          if (res.data.agreement) {
+            Swal.fire("Success", "Apartment booked successfully!", "success").then(() => {
+              fetchAgreements();
+            });
+            // Remove query params to prevent re-triggering
+            try {
+              const url = new URL(window.location.href);
+              url.search = "";
+              window.history.replaceState({}, document.title, url.toString());
+            } catch (e) {
+              // ignore
+            }
+          } else {
+            Swal.fire("Error", res.data.message || "Booking failed", "error");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          Swal.fire("Error", "Failed to confirm payment", "error");
+        });
+    } else if (success === "false") {
+      Swal.fire("Payment failed", "No agreement created", "error");
+      try {
+        const url = new URL(window.location.href);
+        url.search = "";
+        window.history.replaceState({}, document.title, url.toString());
+      } catch (e) { }
     }
   }, [session]);
 
+  // Fetch agreements on session load
+  useEffect(() => {
+    fetchAgreements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
+
   return (
-    <div className="min-h-screen py-28 px-4 md:px-20 lg:px-32 bg-gray-50">
-      {/* Profile Info */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-green-600 mb-2">
-          Member Profile
-        </h2>
-        <p>
-          <strong>Name:</strong> {session?.user?.name || "N/A"}
-        </p>
-        <p>
-          <strong>Email:</strong> {session?.user?.email || "N/A"}
-        </p>
-        <p>
-          <strong>Role:</strong> {session?.user?.role || "N/A"}
-        </p>
-      </div>
+    <div className="min-h-screen py-[120px] w-[1177px] mx-auto">
+      <h2 className="text-2xl font-bold mb-4 text-green-600">Member Profile</h2>
+      <p>
+        <strong>Name:</strong> {session?.user?.name}
+      </p>
+      <p>
+        <strong>Email:</strong> {session?.user?.email}
+      </p>
+      <p>
+        <strong>Role:</strong> {session?.user?.role}
+      </p>
 
-      {/* Bookings */}
-      <div>
-        <h3 className="text-2xl font-semibold mb-4 text-blue-600">
-          My Bookings
-        </h3>
-
-        {loading ? (
-          <p>Loading your bookings...</p>
-        ) : agreements.length === 0 ? (
-          <p>You have no booked apartments yet.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agreements.map((a) => (
-              <div
-                key={a._id}
-                className="bg-white rounded-lg shadow p-4 flex flex-col"
-              >
-                <img
-                  src={a.apartment.aimage}
-                  alt={`Apartment ${a.apartment.aprtno}`}
-                  className="w-full h-48 object-cover rounded mb-4"
-                />
+      <h3 className="text-xl font-bold mt-8 mb-4">My Bookings</h3>
+      {agreements.length === 0 ? (
+        <p>No apartments booked yet.</p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6">
+          {agreements.map((ag) => {
+            const apt = (typeof ag.apartment === "string" ? null : ag.apartment) as ApartmentType | null;
+            return (
+              <div key={ag._id} className="border p-4 rounded-md bg-white shadow-md">
+                {apt && (
+                  <img
+                    src={apt.aimage}
+                    alt={apt.aprtno}
+                    className="w-full h-40 object-cover rounded"
+                  />
+                )}
                 <p>
-                  <strong>Apartment No:</strong> {a.apartment.aprtno}
+                  <strong>Apartment No:</strong> {apt?.aprtno ?? "N/A"}
                 </p>
                 <p>
-                  <strong>Floor No:</strong> {a.apartment.flrno}
+                  <strong>Floor No:</strong> {apt?.flrno ?? "N/A"}
                 </p>
                 <p>
-                  <strong>Block:</strong> {a.apartment.block}
+                  <strong>Block:</strong> {apt?.block ?? "N/A"}
                 </p>
                 <p>
-                  <strong>Rent:</strong> ${a.apartment.rent}
+                  <strong>Rent:</strong> ${apt?.rent ?? "N/A"}
                 </p>
                 <p>
                   <strong>Status:</strong>{" "}
                   <span
-                    className={`font-semibold ${a.status === "completed"
-                        ? "text-green-600"
-                        : a.status === "approved"
-                          ? "text-blue-600"
-                          : "text-yellow-600"
-                      }`}
+                    className={
+                      ag.status === "pending"
+                        ? "text-yellow-500"
+                        : ag.status === "completed"
+                          ? "text-green-600"
+                          : "text-red-500"
+                    }
                   >
-                    {a.status}
+                    {ag.status}
                   </span>
                 </p>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
+
     </div>
   );
 }

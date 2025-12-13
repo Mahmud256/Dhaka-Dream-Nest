@@ -26,6 +26,7 @@
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
     "react-responsive-carousel": "^3.2.23",
+    "stripe": "^20.0.0",
     "sweetalert2": "^11.26.3",
     "swiper": "^12.0.3"
   },

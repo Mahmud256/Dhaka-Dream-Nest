@@ -3,8 +3,27 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
+type ApartmentType = {
+  aprtno: string;
+  flrno: string;
+  block: string;
+  rent: number;
+  aimage?: string;
+};
+
+type UserType = {
+  name: string;
+};
+
+type AgreementType = {
+  _id: string;
+  user?: UserType;
+  apartment?: ApartmentType;
+  status: "pending" | "approved" | "completed" | string;
+};
+
 export default function AgreementManagePage() {
-  const [agreements, setAgreements] = useState([]);
+  const [agreements, setAgreements] = useState<AgreementType[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch Agreements
@@ -15,6 +34,7 @@ export default function AgreementManagePage() {
       setAgreements(data);
     } catch (error) {
       console.error("Error fetching agreements:", error);
+      Swal.fire("Error", "Failed to fetch agreements", "error");
     } finally {
       setLoading(false);
     }
@@ -35,7 +55,9 @@ export default function AgreementManagePage() {
 
       if (res.ok) {
         Swal.fire("Success", "Agreement status updated!", "success");
-        fetchAgreements();
+        setAgreements((prev) =>
+          prev.map((ag) => (ag._id === id ? { ...ag, status } : ag))
+        );
       } else {
         Swal.fire("Error", "Failed to update", "error");
       }
@@ -61,7 +83,9 @@ export default function AgreementManagePage() {
 
       if (res.ok) {
         Swal.fire("Deleted!", "Agreement removed successfully", "success");
-        fetchAgreements();
+        setAgreements((prev) => prev.filter((ag) => ag._id !== id));
+      } else {
+        Swal.fire("Error", "Failed to delete", "error");
       }
     } catch (error) {
       Swal.fire("Error", "Something went wrong", "error");
@@ -79,7 +103,7 @@ export default function AgreementManagePage() {
         <p>No agreements found.</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {agreements.map((ag: any) => (
+          {agreements.map((ag) => (
             <div
               key={ag._id}
               className="p-4 border rounded-md shadow bg-[#0d3b3a]"
@@ -97,7 +121,20 @@ export default function AgreementManagePage() {
               </p>
 
               <p className="text-gray-200">
-                <strong>Status:</strong> {ag.status}
+                <strong>Status:</strong>{" "}
+                <span
+                  className={
+                    ag.status === "pending"
+                      ? "text-yellow-400"
+                      : ag.status === "approved"
+                      ? "text-blue-400"
+                      : ag.status === "completed"
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }
+                >
+                  {ag.status}
+                </span>
               </p>
 
               <div className="mt-4 flex gap-2">

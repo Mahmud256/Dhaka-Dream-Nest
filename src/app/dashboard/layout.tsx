@@ -85,12 +85,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 
                     {session?.user?.role === "member" && (
-                        <Link
-                            href="/dashboard/member"
-                            className={`flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f] ${pathname === "/dashboard/member" ? "bg-[#14524f]" : ""}`}
-                        >
-                            <User size={18} /> Member Area
-                        </Link>
+                        <>
+                            <Link
+                                href="/dashboard/member"
+                                className={`flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f] ${pathname === "/dashboard/member" ? "bg-[#14524f]" : ""}`}
+                            >
+                                <User size={18} /> Member Area
+                            </Link>
+
+                            <Link
+                                href="/dashboard/member/payments-history"
+                                className={`flex items-center gap-2 p-2 rounded-md hover:bg-[#14524f] ${pathname === "/dashboard/member/payment-history" ? "bg-[#14524f]" : ""}`}
+                            >
+                                <User size={18} /> Payment History
+                            </Link>
+                        </>
                     )}
 
                     {session?.user?.role === "user" && (

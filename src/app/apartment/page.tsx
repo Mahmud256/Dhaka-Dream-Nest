@@ -1,3 +1,4 @@
+// src/app/apartment/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -16,20 +17,23 @@ interface ApartmentType {
   rent: number;
 }
 
+interface AgreementType {
+  _id: string;
+  apartment: ApartmentType;
+  user: { _id: string };
+}
+
 const ApartmentPage: React.FC = () => {
   const [apartments, setApartments] = useState<ApartmentType[]>([]);
-  const [agreements, setAgreements] = useState<any[]>([]);
-
+  const [agreements, setAgreements] = useState<AgreementType[]>([]);
   const { data: session } = useSession();
 
-  // Initialize AOS
+  // Initialize AOS for animations
   useEffect(() => {
-    import("aos").then((module) => {
-      module.default.init({ duration: 1000, once: true });
-    });
+    import("aos").then((AOS) => AOS.default.init({ duration: 1000, once: true }));
   }, []);
 
-  // Fetch Apartments
+  // Fetch apartments
   useEffect(() => {
     axios
       .get("/api/apartments")
@@ -37,7 +41,7 @@ const ApartmentPage: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // Fetch Agreements
+  // Fetch agreements
   useEffect(() => {
     axios
       .get("/api/agreements")
@@ -45,59 +49,41 @@ const ApartmentPage: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // 🔥 Corrected: apartment is booked if some agreement has ag.apartment._id === aptId
+  // Check if apartment is booked
   const isBooked = (aptId: string) => {
     return agreements.some((a) => a.apartment?._id === aptId);
   };
 
-  // 🔥 Corrected: user has agreement if ag.user._id === logged-in user id
+  // Check if user already has an agreement
   const userHasAgreement = () => {
     if (!session?.user?.id) return false;
-
     return agreements.some((a) => a.user?._id === session.user.id);
   };
 
-  // Handle Agreement
+  // Handle agreement click → redirect to Stripe Checkout
   const handleAgreement = async (apt: ApartmentType) => {
-    // only members can make agreement
     if (session?.user?.role !== "member") {
       return Swal.fire("Access Denied", "Only members can make an agreement!", "error");
     }
 
-    // one apartment per user
     if (userHasAgreement()) {
       return Swal.fire("Limit Reached", "You have already booked 1 apartment!", "warning");
     }
 
-    Swal.fire({
-      title: "Confirm Agreement",
-      text: `Do you want to make an agreement for Apartment ${apt.aprtno}?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Confirm",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await axios.post("/api/agreements", {
-            userId: session.user.id,
-            apartmentId: apt._id,
-          });
+    try {
+      const res = await axios.post("/api/payments/create-checkout-session", {
+        apartmentId: apt._id,
+        userId: session.user.id,
+      });
 
-          Swal.fire({
-            icon: "success",
-            title: `Agreement confirmed for ${apt.aprtno}`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-
-          // refresh agreements
-          const res = await axios.get("/api/agreements");
-          setAgreements(res.data);
-        } catch (err: any) {
-          Swal.fire("Error", err.response?.data?.message || "Something went wrong!", "error");
-        }
+      if (res.data?.url) {
+        window.location.href = res.data.url; // Redirect to Stripe
+      } else {
+        Swal.fire("Error", "Failed to initiate payment", "error");
       }
-    });
+    } catch (err: any) {
+      Swal.fire("Error", err.response?.data?.message || "Something went wrong!", "error");
+    }
   };
 
   return (
@@ -157,7 +143,7 @@ const ApartmentPage: React.FC = () => {
                       </Button>
                     ) : (
                       <Button variant="contained" disabled className="mt-4">
-                        Not Available
+                        Available
                       </Button>
                     )}
                   </div>
