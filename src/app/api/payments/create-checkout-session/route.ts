@@ -1,10 +1,13 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { connectDB } from "@/lib/mongodb";
 import Apartment from "@/models/Apartment";
 import Payment from "@/models/Payment";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2022-11-15" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
   await connectDB();
@@ -16,8 +19,10 @@ export async function POST(req: Request) {
   }
 
   const apartment = await Apartment.findById(apartmentId);
-  if (!apartment) return NextResponse.json({ message: "Apartment not found" }, { status: 404 });
- 
+  if (!apartment) {
+    return NextResponse.json({ message: "Apartment not found" }, { status: 404 });
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -36,7 +41,6 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXTAUTH_URL}/dashboard/member?success=false`,
     });
 
-    // Create payment record in "pending" state
     await Payment.create({
       user: userId,
       apartment: apartmentId,
@@ -48,6 +52,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ message: err.message || "Stripe error" }, { status: 500 });
+    return NextResponse.json({ message: "Stripe error" }, { status: 500 });
   }
 }
